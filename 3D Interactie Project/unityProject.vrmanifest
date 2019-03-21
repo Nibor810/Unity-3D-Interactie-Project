@@ -1,0 +1,16 @@
+{
+  "source": "Unity",
+  "applications": [
+    {
+      "app_key": "application.generated.unity.3dinteractieproject.exe",
+      "launch_type": "url",
+      "url": "steam://launch/",
+      "action_manifest_path": "C:\\Github\\Unity-3D-Interactie-Project_JJJR\\Unity-3D-Interactie-Project\\3D Interactie Project\\actions.json",
+      "strings": {
+        "en_us": {
+          "name": "3D Interactie Project [Testing]"
+        }
+      }
+    }
+  ]
+}
