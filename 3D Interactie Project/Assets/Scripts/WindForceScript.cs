@@ -28,6 +28,7 @@ public class WindForceScript : MonoBehaviour
 
     public Power selectedPower;
     public GameObject targetPointer;
+    public LayerMask mask;
 
     private List<GameObject> spawnedGameObjects = new List<GameObject>();
 
@@ -47,6 +48,7 @@ public class WindForceScript : MonoBehaviour
     public void SetPower(Power power)
     {
         selectedPower = power;
+        hasAccelerated = false;
     }
 
     //Needs Work
@@ -55,16 +57,16 @@ public class WindForceScript : MonoBehaviour
         Vector3 velocity = controllerPose.GetVelocity();
         if (selectAction.GetState(handType))
         {
-            if (CheckForceLimit(velocity, forceLimit))
+            if (CheckForceLimit(velocity, 1.0f) && !hasAccelerated)
             {
-                CastCrows(velocity);
                 hasAccelerated = true;
             }
-
-            if (CheckForceLimit(velocity, 0.2f) && hasAccelerated)
+            else if (CheckForceLimit(velocity, 0.2f) && hasAccelerated)
             {
+                Debug.Log("Crow");
+                CastCrows(velocity);
                 RaycastHit hit;
-                if (Physics.Raycast(controllerPose.transform.position, transform.forward, out hit, 100))
+                if (Physics.Raycast(controllerPose.transform.position, transform.forward, out hit, 100, mask))
                 {
                     ActivateCrows(hit.point);
                 }
@@ -74,6 +76,21 @@ public class WindForceScript : MonoBehaviour
                 }
                 hasAccelerated = false;
             }
+            /*
+            if (CheckForceLimit(velocity, 0.2f) && hasAccelerated)
+            {
+                RaycastHit hit;
+                if (Physics.Raycast(controllerPose.transform.position, transform.forward, out hit, 100, mask))
+                {
+                    ActivateCrows(hit.point);
+                }
+                else
+                {
+                    DeactivateCrows();
+                }
+                hasAccelerated = false;
+            }
+            */
         }
     }
 
@@ -85,19 +102,22 @@ public class WindForceScript : MonoBehaviour
     private void WindUpdate()
     {
         Vector3 velocity = controllerPose.GetVelocity();
-        if (CheckForceLimit(velocity, 1.0f) && !hasAccelerated)
+        if (CheckForceLimit(velocity, 1.0f) && !hasAccelerated)//Toggle Werkt nog voor geen reet.
         {
+            Debug.Log("WindFast");
             SelectObjects();
             hasAccelerated = true;
         }
         else if (CheckForceLimit(velocity, 0.2f) && hasAccelerated)
         {
+            Debug.Log("WindSlow");
             DeselectObjects();
             hasAccelerated = false;
         }
 
         if (hasAccelerated)
         {
+            Debug.Log("WindCast");
             CastWind(velocity);
         }
     }
