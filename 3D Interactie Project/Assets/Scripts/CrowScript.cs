@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class CrowScript : MonoBehaviour
 {
+    /*
     private bool activated = false;
     private Rigidbody rb;
     private Vector3 setTarget;    
@@ -13,16 +14,17 @@ public class CrowScript : MonoBehaviour
     {
         if (activated)
         {
-            rb.MovePosition(transform.position + setTarget * Time.deltaTime);
+            //rb.MovePosition(transform.position + setTarget * Time.deltaTime);
         }
     } 
 
     public void Activate(Vector3 target)
     {
-        transform.LookAt(target);
+        //transform.LookAt(target);
         setTarget = target;
         activated = true;
         rb = GetComponent<Rigidbody>();
         Destroy(gameObject, (1 + Random.value * 3));
     }
+    */
 }

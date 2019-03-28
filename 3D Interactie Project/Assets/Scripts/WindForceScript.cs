@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Valve.VR;
@@ -57,40 +56,16 @@ public class WindForceScript : MonoBehaviour
         Vector3 velocity = controllerPose.GetVelocity();
         if (selectAction.GetState(handType))
         {
-            if (CheckForceLimit(velocity, 1.0f) && !hasAccelerated)
+            if (velocity.magnitude > 3 && !hasAccelerated)
             {
                 hasAccelerated = true;
             }
-            else if (CheckForceLimit(velocity, 0.2f) && hasAccelerated)
+            else if (velocity.magnitude < 1 && hasAccelerated)
             {
                 Debug.Log("Crow");
                 CastCrows(velocity);
-                RaycastHit hit;
-                if (Physics.Raycast(controllerPose.transform.position, transform.forward, out hit, 100, mask))
-                {
-                    ActivateCrows(hit.point);
-                }
-                else
-                {
-                    DeactivateCrows();
-                }
                 hasAccelerated = false;
             }
-            /*
-            if (CheckForceLimit(velocity, 0.2f) && hasAccelerated)
-            {
-                RaycastHit hit;
-                if (Physics.Raycast(controllerPose.transform.position, transform.forward, out hit, 100, mask))
-                {
-                    ActivateCrows(hit.point);
-                }
-                else
-                {
-                    DeactivateCrows();
-                }
-                hasAccelerated = false;
-            }
-            */
         }
     }
 
@@ -98,26 +73,26 @@ public class WindForceScript : MonoBehaviour
 
 
 
-    //Functional
     private void WindUpdate()
     {
         Vector3 velocity = controllerPose.GetVelocity();
-        if (CheckForceLimit(velocity, 1.0f) && !hasAccelerated)//Toggle Werkt nog voor geen reet.
+        //Debug.Log(velocity.magnitude);
+        if (/*CheckForceLimit(velocity, 1.0f,false)*/ velocity.magnitude > 3 && !hasAccelerated)//Toggle Werkt nog voor geen reet.
         {
-            Debug.Log("WindFast");
+            Debug.Log("Wind - Fast");
             SelectObjects();
             hasAccelerated = true;
         }
-        else if (CheckForceLimit(velocity, 0.2f) && hasAccelerated)
+        else if (/*CheckForceLimit(velocity, 0.2f,true) */ velocity.magnitude < 1 && hasAccelerated)
         {
-            Debug.Log("WindSlow");
+            Debug.Log("Wind - Slow");
             DeselectObjects();
             hasAccelerated = false;
         }
 
         if (hasAccelerated)
         {
-            Debug.Log("WindCast");
+            //Debug.Log("WindCast");
             CastWind(velocity);
         }
     }
@@ -132,9 +107,12 @@ public class WindForceScript : MonoBehaviour
         AffectableObjectsManager.selectedObjects = AffectableObjectsManager.affectedObjects.ToList();
     }
 
-    private bool CheckForceLimit(Vector3 force, float limit)
+    private bool CheckForceLimit(Vector3 force, float limit, bool lower)
     {
-        return Mathf.Abs(force.x) > limit || Mathf.Abs(force.y) > limit || Mathf.Abs(force.z) > limit;
+        if(lower)
+            return Mathf.Abs(force.x) < limit || Mathf.Abs(force.y) < limit || Mathf.Abs(force.z) < limit;
+        else
+            return Mathf.Abs(force.x) > limit || Mathf.Abs(force.y) > limit || Mathf.Abs(force.z) > limit;
     }
 
     private void CastWind(Vector3 velocity)
@@ -152,40 +130,17 @@ public class WindForceScript : MonoBehaviour
 
     private void CastCrows(Vector3 velocity)
     {
-        Vector3 force = (velocity * forceVariable); // + (controllerPose.transform.forward * forceVariable);
+        Vector3 force = (velocity * forceVariable * 10) + (crowSpawnPosition.transform.forward * forceVariable * 10); //+ (controllerPose.transform.forward * forceVariable);
 
-        for (int i = -3; i < 3; i++)//on x axis for left/right, y for up/down
+        for (int i = -1; i < 1; i++)//on x axis for left/right, y for up/down
         {
-            Vector3 pos = new Vector3(crowSpawnPosition.position.x+(i*0.3f), crowSpawnPosition.position.y, crowSpawnPosition.position.z);
-            Quaternion rot = Quaternion.Euler(crowSpawnPosition.eulerAngles + crowRotationOffset);
-            GameObject crow = Instantiate(crowPrefab, pos, rot); //Position is fucked up, prefab met startpositie.
+            GameObject crow = Instantiate(crowPrefab, controllerPose.transform); //Position is fucked up, prefab met startpositie.
+            crow.transform.localPosition = new Vector3(controllerPose.transform.localPosition.x + (i * 0.3f), controllerPose.transform.localPosition.y, controllerPose.transform.localPosition.z); ;
+            crow.transform.SetParent(null);
             crow.GetComponent<Rigidbody>().AddForce(force);
-            spawnedGameObjects.Add(crow);
-            //Destroy(crow, crowLifeTime);
+            Destroy(crow, (1 + Random.value * 3));
         }
     }
-
-
-    private void ActivateCrows(Vector3 target)
-    {
-        Debug.Log(target);
-        targetPointer.transform.position = target;
-        foreach (GameObject crow in spawnedGameObjects)
-        {
-            crow.GetComponent<CrowScript>().Activate(target);
-        }
-        spawnedGameObjects.Clear();
-    }
-
-    private void DeactivateCrows()
-    {
-        foreach (GameObject crow in spawnedGameObjects)
-        {
-            Destroy(crow);
-        }
-        spawnedGameObjects.Clear();
-    }
-
 
     private void CastTelekinesis(Vector3 velocity)
     {
