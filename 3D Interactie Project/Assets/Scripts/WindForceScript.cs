@@ -27,7 +27,9 @@ public class WindForceScript : MonoBehaviour
     public Transform crowSpawnPosition;
 
     public Power selectedPower;
+    public GameObject targetPointer;
 
+    private List<GameObject> spawnedGameObjects = new List<GameObject>();
 
     public bool hasAccelerated = false;
 
@@ -42,51 +44,60 @@ public class WindForceScript : MonoBehaviour
         }
     }
 
+    public void SetPower(Power power)
+    {
+        selectedPower = power;
+    }
+
+    //Needs Work
     private void CrowUpdate()
     {
         Vector3 velocity = controllerPose.GetVelocity();
-        if (selectAction.GetStateDown(handType))
-        {
-            //Debug.Log("Pressed");
-            SelectObjects();
-        }
-
-        if (selectAction.GetStateUp(handType))
-        {
-            //Debug.Log("Released");
-            DeselectObjects();
-        }
-
         if (selectAction.GetState(handType))
         {
             if (CheckForceLimit(velocity, forceLimit))
             {
-                //Debug.Log("Velocity: " + velocity);
-                CastWind(velocity);
-                //CastCrows(velocity);
+                CastCrows(velocity);
+                hasAccelerated = true;
+            }
+
+            if (CheckForceLimit(velocity, 0.2f) && hasAccelerated)
+            {
+                RaycastHit hit;
+                if (Physics.Raycast(controllerPose.transform.position, transform.forward, out hit, 100))
+                {
+                    ActivateCrows(hit.point);
+                }
+                else
+                {
+                    DeactivateCrows();
+                }
+                hasAccelerated = false;
             }
         }
     }
 
+   
+
+
+
+    //Functional
     private void WindUpdate()
     {
         Vector3 velocity = controllerPose.GetVelocity();
         if (CheckForceLimit(velocity, 1.0f) && !hasAccelerated)
         {
-            //Debug.Log("Start");
             SelectObjects();
             hasAccelerated = true;
         }
         else if (CheckForceLimit(velocity, 0.2f) && hasAccelerated)
         {
-            //Debug.Log("Slow");
             DeselectObjects();
             hasAccelerated = false;
         }
 
         if (hasAccelerated)
         {
-            //Debug.Log("accelerated");
             CastWind(velocity);
         }
     }
@@ -123,12 +134,46 @@ public class WindForceScript : MonoBehaviour
     {
         Vector3 force = (velocity * forceVariable); // + (controllerPose.transform.forward * forceVariable);
 
-        for (int i = 0; i < 1; i++)
+        for (int i = -3; i < 3; i++)//on x axis for left/right, y for up/down
         {
-            GameObject crow = Instantiate(crowPrefab, crowSpawnPosition.position + crowPositionOffset, Quaternion.Euler(crowSpawnPosition.eulerAngles + crowRotationOffset)); //Position is fucked up, prefab met startpositie.
+            Vector3 pos = new Vector3(crowSpawnPosition.position.x+(i*0.3f), crowSpawnPosition.position.y, crowSpawnPosition.position.z);
+            Quaternion rot = Quaternion.Euler(crowSpawnPosition.eulerAngles + crowRotationOffset);
+            GameObject crow = Instantiate(crowPrefab, pos, rot); //Position is fucked up, prefab met startpositie.
             crow.GetComponent<Rigidbody>().AddForce(force);
-            Destroy(crow, crowLifeTime);
+            spawnedGameObjects.Add(crow);
+            //Destroy(crow, crowLifeTime);
         }
+    }
+
+
+    private void ActivateCrows(Vector3 target)
+    {
+        Debug.Log(target);
+        targetPointer.transform.position = target;
+        foreach (GameObject crow in spawnedGameObjects)
+        {
+            crow.GetComponent<CrowScript>().Activate(target);
+        }
+        spawnedGameObjects.Clear();
+    }
+
+    private void DeactivateCrows()
+    {
+        foreach (GameObject crow in spawnedGameObjects)
+        {
+            Destroy(crow);
+        }
+        spawnedGameObjects.Clear();
+    }
+
+
+    private void CastTelekinesis(Vector3 velocity)
+    {
+        Vector3 force = (velocity * forceVariable);
+
+
+
+
     }
 
 
