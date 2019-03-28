@@ -3,6 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Valve.VR;
+using System.Linq;
+
+public enum Power
+{
+    Wind, Crow
+}
+
 
 public class WindForceScript : MonoBehaviour
 {
@@ -10,55 +17,98 @@ public class WindForceScript : MonoBehaviour
     public SteamVR_Behaviour_Pose controllerPose;
     public SteamVR_Action_Boolean selectAction;
     public SteamVR_Action_Boolean deselectAction;
+    public GameObject crowPrefab;
 
     public float forceLimit = 3.0f;
     public float forceVariable = 20.0f;
+    public int crowLifeTime = 5;
+    public Vector3 crowPositionOffset;
+    public Vector3 crowRotationOffset;
+    public Transform crowSpawnPosition;
+
+    public Power selectedPower;
+
+
+    public bool hasAccelerated = false;
 
     // Update is called once per frame
     void Update()
     {
+        switch (selectedPower)
+        {
+            case Power.Wind: WindUpdate();  break;
+            case Power.Crow: CrowUpdate(); break;
+
+        }
+    }
+
+    private void CrowUpdate()
+    {
         Vector3 velocity = controllerPose.GetVelocity();
         if (selectAction.GetStateDown(handType))
         {
-            Debug.Log("Pressed");
+            //Debug.Log("Pressed");
             SelectObjects();
         }
 
         if (selectAction.GetStateUp(handType))
         {
-            Debug.Log("Released");
+            //Debug.Log("Released");
             DeselectObjects();
         }
 
         if (selectAction.GetState(handType))
         {
-            if (IsOverForceLimit(velocity))
+            if (CheckForceLimit(velocity, forceLimit))
             {
-                Debug.Log("Velocity: " + velocity);
+                //Debug.Log("Velocity: " + velocity);
                 CastWind(velocity);
+                //CastCrows(velocity);
             }
         }
-        
+    }
+
+    private void WindUpdate()
+    {
+        Vector3 velocity = controllerPose.GetVelocity();
+        if (CheckForceLimit(velocity, 1.0f) && !hasAccelerated)
+        {
+            //Debug.Log("Start");
+            SelectObjects();
+            hasAccelerated = true;
+        }
+        else if (CheckForceLimit(velocity, 0.2f) && hasAccelerated)
+        {
+            //Debug.Log("Slow");
+            DeselectObjects();
+            hasAccelerated = false;
+        }
+
+        if (hasAccelerated)
+        {
+            //Debug.Log("accelerated");
+            CastWind(velocity);
+        }
     }
 
     private void DeselectObjects()
     {
-        AffectableObjectsManager.selectedObjects = new List<GameObject>();
+        AffectableObjectsManager.selectedObjects.Clear();
     }
 
     private void SelectObjects()
     {
-        AffectableObjectsManager.selectedObjects = new List<GameObject>(AffectableObjectsManager.affectedObjects); 
+        AffectableObjectsManager.selectedObjects = AffectableObjectsManager.affectedObjects.ToList();
     }
 
-    private bool IsOverForceLimit(Vector3 force)
+    private bool CheckForceLimit(Vector3 force, float limit)
     {
-        return Mathf.Abs(force.x) > forceLimit || Mathf.Abs(force.y) > forceLimit || Mathf.Abs(force.z) > forceLimit;
+        return Mathf.Abs(force.x) > limit || Mathf.Abs(force.y) > limit || Mathf.Abs(force.z) > limit;
     }
 
     private void CastWind(Vector3 velocity)
     {
-        if (AffectableObjectsManager.selectedObjects.Count > 0)
+        if (AffectableObjectsManager.selectedObjects.Any())
         {
             Vector3 force = velocity * forceVariable;
 
@@ -68,4 +118,19 @@ public class WindForceScript : MonoBehaviour
             }
         }
     }
+
+    private void CastCrows(Vector3 velocity)
+    {
+        Vector3 force = (velocity * forceVariable); // + (controllerPose.transform.forward * forceVariable);
+
+        for (int i = 0; i < 1; i++)
+        {
+            GameObject crow = Instantiate(crowPrefab, crowSpawnPosition.position + crowPositionOffset, Quaternion.Euler(crowSpawnPosition.eulerAngles + crowRotationOffset)); //Position is fucked up, prefab met startpositie.
+            crow.GetComponent<Rigidbody>().AddForce(force);
+            Destroy(crow, crowLifeTime);
+        }
+    }
+
+
+
 }
