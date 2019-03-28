@@ -8,7 +8,8 @@ public class WindForceScript : MonoBehaviour
 {
     public SteamVR_Input_Sources handType;
     public SteamVR_Behaviour_Pose controllerPose;
-    public SteamVR_Action_Boolean teleportAction;
+    public SteamVR_Action_Boolean selectAction;
+    public SteamVR_Action_Boolean deselectAction;
 
     public float forceLimit = 3.0f;
     public float forceVariable = 20.0f;
@@ -17,13 +18,37 @@ public class WindForceScript : MonoBehaviour
     void Update()
     {
         Vector3 velocity = controllerPose.GetVelocity();
-
-        if(IsOverForceLimit(velocity))
+        if (selectAction.GetStateDown(handType))
         {
-            Debug.Log("Harde LUL"+ velocity);
-            CastWind2(velocity);
+            Debug.Log("Pressed");
+            SelectObjects();
+        }
+
+        if (selectAction.GetStateUp(handType))
+        {
+            Debug.Log("Released");
+            DeselectObjects();
+        }
+
+        if (selectAction.GetState(handType))
+        {
+            if (IsOverForceLimit(velocity))
+            {
+                Debug.Log("Velocity: " + velocity);
+                CastWind(velocity);
+            }
         }
         
+    }
+
+    private void DeselectObjects()
+    {
+        AffectableObjectsManager.selectedObjects = new List<GameObject>();
+    }
+
+    private void SelectObjects()
+    {
+        AffectableObjectsManager.selectedObjects = new List<GameObject>(AffectableObjectsManager.affectedObjects); 
     }
 
     private bool IsOverForceLimit(Vector3 force)
@@ -31,23 +56,16 @@ public class WindForceScript : MonoBehaviour
         return Mathf.Abs(force.x) > forceLimit || Mathf.Abs(force.y) > forceLimit || Mathf.Abs(force.z) > forceLimit;
     }
 
-    private void CastWind()
+    private void CastWind(Vector3 velocity)
     {
-        Vector3 force = transform.forward * 50;
-        
-        foreach (GameObject moveableObject in AffectableObjectsManager.affectedObjects)
+        if (AffectableObjectsManager.selectedObjects.Count > 0)
         {
-            moveableObject.GetComponent<Rigidbody>().AddForce(force);
-        }
-    }
+            Vector3 force = velocity * forceVariable;
 
-    private void CastWind2(Vector3 velocity)
-    {
-        Vector3 force = velocity * forceVariable;
-
-        foreach (GameObject moveableObject in AffectableObjectsManager.affectedObjects)
-        {
-            moveableObject.GetComponent<Rigidbody>().AddForce(force);
+            foreach (GameObject moveableObject in AffectableObjectsManager.selectedObjects)
+            {
+                moveableObject.GetComponent<Rigidbody>().AddForce(force);
+            }
         }
     }
 }
