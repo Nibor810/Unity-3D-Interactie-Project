@@ -14,6 +14,8 @@ public class PowerSelectorScript : MonoBehaviour
 
     public GameObject particleA;
     public GameObject particleB;
+    public GameObject particleC;
+    public GameObject particleD;
 
     // Update is called once per frame
     void Update()
@@ -27,6 +29,8 @@ public class PowerSelectorScript : MonoBehaviour
                 magicScript.SetPower(Power.Crow);
                 particleA.SetActive(true);
                 particleB.SetActive(false);
+                particleC.SetActive(false);
+                particleD.SetActive(false);
             }
             else if (touchPadPosition.axis.x > 0 && touchPadPosition.axis.y < 0)
             {
@@ -34,14 +38,26 @@ public class PowerSelectorScript : MonoBehaviour
                 magicScript.SetPower(Power.Wind);
                 particleA.SetActive(false);
                 particleB.SetActive(true);
+                particleC.SetActive(false);
+                particleD.SetActive(false);
             }
             else if (touchPadPosition.axis.x > 0 && touchPadPosition.axis.y > 0)
             {
                 Debug.Log("3");//Rechts Boven
+                magicScript.SetPower(Power.None);
+                particleA.SetActive(false);
+                particleB.SetActive(false);
+                particleC.SetActive(true);
+                particleD.SetActive(false);
             }
             else if (touchPadPosition.axis.x < 0 && touchPadPosition.axis.y > 0)
             {
                 Debug.Log("4"); //Links Boven
+                magicScript.SetPower(Power.None);
+                particleA.SetActive(false);
+                particleB.SetActive(false);
+                particleC.SetActive(false);
+                particleD.SetActive(true);
             }
             else
             {

@@ -6,7 +6,7 @@ using System.Linq;
 
 public enum Power
 {
-    Wind, Crow
+    None, Wind, Crow
 }
 
 
