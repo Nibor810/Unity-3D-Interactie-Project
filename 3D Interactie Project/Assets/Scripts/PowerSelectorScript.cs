@@ -15,7 +15,6 @@ public class PowerSelectorScript : MonoBehaviour
     public GameObject particleA;
     public GameObject particleB;
     public GameObject particleC;
-    public GameObject particleD;
 
     // Update is called once per frame
     void Update()
@@ -30,7 +29,6 @@ public class PowerSelectorScript : MonoBehaviour
                 particleA.SetActive(true);
                 particleB.SetActive(false);
                 particleC.SetActive(false);
-                particleD.SetActive(false);
             }
             else if (touchPadPosition.axis.x > 0 && touchPadPosition.axis.y < 0)
             {
@@ -39,7 +37,6 @@ public class PowerSelectorScript : MonoBehaviour
                 particleA.SetActive(false);
                 particleB.SetActive(true);
                 particleC.SetActive(false);
-                particleD.SetActive(false);
             }
             else if (touchPadPosition.axis.x > 0 && touchPadPosition.axis.y > 0)
             {
@@ -48,7 +45,6 @@ public class PowerSelectorScript : MonoBehaviour
                 particleA.SetActive(false);
                 particleB.SetActive(false);
                 particleC.SetActive(true);
-                particleD.SetActive(false);
             }
             else if (touchPadPosition.axis.x < 0 && touchPadPosition.axis.y > 0)
             {
@@ -57,7 +53,6 @@ public class PowerSelectorScript : MonoBehaviour
                 particleA.SetActive(false);
                 particleB.SetActive(false);
                 particleC.SetActive(false);
-                particleD.SetActive(true);
             }
             else
             {

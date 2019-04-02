@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Valve.VR;
 using System.Linq;
+using System;
 
 public enum Power
 {
@@ -25,6 +26,8 @@ public class WindForceScript : MonoBehaviour
     public Vector3 crowRotationOffset;
     public Transform crowSpawnPosition;
 
+    public Power startPower = Power.None;
+
     public Power selectedPower;
     public GameObject targetPointer;
     public LayerMask mask;
@@ -33,6 +36,11 @@ public class WindForceScript : MonoBehaviour
 
     public bool hasAccelerated = false;
 
+    private void Start()
+    {
+        selectedPower = startPower;
+    }
+
     // Update is called once per frame
     void Update()
     {
@@ -40,8 +48,14 @@ public class WindForceScript : MonoBehaviour
         {
             case Power.Wind: WindUpdate();  break;
             case Power.Crow: CrowUpdate(); break;
+            case Power.None: NoPowerUpdate(); break;
 
         }
+    }
+
+    private void NoPowerUpdate()
+    {
+        
     }
 
     public void SetPower(Power power)
@@ -138,7 +152,7 @@ public class WindForceScript : MonoBehaviour
             crow.transform.localPosition = new Vector3(controllerPose.transform.localPosition.x + (i * 0.3f), controllerPose.transform.localPosition.y, controllerPose.transform.localPosition.z); ;
             crow.transform.SetParent(null);
             crow.GetComponent<Rigidbody>().AddForce(force);
-            Destroy(crow, (1 + Random.value * 3));
+            Destroy(crow, (1 + UnityEngine.Random.value * 3));
         }
     }
 
