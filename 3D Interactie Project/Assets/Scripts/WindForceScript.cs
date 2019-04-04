@@ -208,20 +208,26 @@ public class WindForceScript : MonoBehaviour
         if (Physics.Raycast(controllerPose.transform.position, transform.forward, out hit, 100, grabbableObjectMask))
         {
             affectedObject = hit.collider.gameObject;
+            if (affectedObject.GetComponent<Rigidbody>() != null)
+            {
+                rbAffectedObject = affectedObject.GetComponent<Rigidbody>();
+                isGrabbingObject = true;
+                rbAffectedObject.useGravity = false;
+                attractObjectParticles.SetActive(true);
+                rbAffectedObject.velocity = Vector3.zero;
+                rbAffectedObject.angularVelocity = Vector3.zero;
+            }
+            else
+            {
+                affectedObject = null;
+            }
         }
-        isGrabbingObject = true;
-        rbAffectedObject = affectedObject.GetComponent<Rigidbody>();
-        rbAffectedObject.useGravity = false;
-        attractObjectParticles.SetActive(true);
-        rbAffectedObject.velocity = Vector3.zero;
-        rbAffectedObject.angularVelocity = Vector3.zero;
-        
     }
 
-    //For kinetic powers
+    //For kinetic powers -> Gaat Foutish?
     private void IdleMovementAffectedObject()
     {
-        Debug.Log("Idle");
+        Debug.Log("Idle: "+centerPoint + " Loc: "+ affectedObject.transform.localPosition);
         centerPoint = affectedObjectDestination.localPosition;
         if (affectedObject.transform.localPosition.x >= centerPoint.x + maxRadius)
         {
@@ -328,6 +334,7 @@ public class WindForceScript : MonoBehaviour
 
     private void SelectObjects()
     {
+        //Might wanna split this up.
         AffectableObjectsManager.selectedObjects = AffectableObjectsManager.affectedObjects.ToList();
     }
 
