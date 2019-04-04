@@ -41,7 +41,7 @@ public class PowerSelectorScript : MonoBehaviour
             else if (touchPadPosition.axis.x > 0 && touchPadPosition.axis.y > 0)
             {
                 Debug.Log("3");//Rechts Boven
-                magicScript.SetPower(Power.None);
+                magicScript.SetPower(Power.Telekinetic);
                 particleA.SetActive(false);
                 particleB.SetActive(false);
                 particleC.SetActive(true);

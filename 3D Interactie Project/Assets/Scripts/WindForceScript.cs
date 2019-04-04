@@ -7,30 +7,72 @@ using System;
 
 public enum Power
 {
-    None, Wind, Crow
+    None, Wind, Crow, Telekinetic
 }
 
 
 public class WindForceScript : MonoBehaviour
 {
+    #region ControllerInfo
     public SteamVR_Input_Sources handType;
     public SteamVR_Behaviour_Pose controllerPose;
     public SteamVR_Action_Boolean selectAction;
     public SteamVR_Action_Boolean deselectAction;
-    public GameObject crowPrefab;
+    #endregion
+
+    #region MoveObjectinfo
+    private Vector3 centerPoint;
+    private Vector3 directionX;
+    private Vector3 directionY;
+    private Vector3 directionZ;
+    public float maxRadius = 0.2f;
+    private float xSpeed = 1;
+    private float ySpeed = 1;
+    private float zSpeed = 1;
+    public float moveSpeed = 0.5f;
+    #endregion
+
+    #region PowerInfo
+    public Power startPower = Power.None;
+    public Power selectedPower;
+    #endregion
 
     public float forceLimit = 3.0f;
     public float forceVariable = 20.0f;
+
+    #region CrowPowers
     public int crowLifeTime = 5;
     public Vector3 crowPositionOffset;
     public Vector3 crowRotationOffset;
     public Transform crowSpawnPosition;
+    public GameObject crowPrefab;
+    #endregion
 
-    public Power startPower = Power.None;
+    #region TelekineticPowers
+    public SteamVR_Action_Boolean grabItemWithTelikineticPowerAction;
+    public Transform affectedObjectDestination;
+    public GameObject affectedObject;
+    private Rigidbody rbAffectedObject;
+    private Vector3 direction;
+    //private Vector3 destination;
+    public float attractSpeed = 2.0f;
+    public float onDestinationTreshhold = 0.01f;
 
-    public Power selectedPower;
-    public GameObject targetPointer;
-    public LayerMask mask;
+    public GameObject hasObjectParticles;
+    public ParticleSystem fireObjectParticles;
+    public GameObject attractObjectParticles;
+
+    public LayerMask grabbableObjectMask;
+
+    private bool hasObject = false;
+    private bool isGrabbingObject = false;
+    #endregion
+
+
+
+
+    //public GameObject targetPointer;
+    //public LayerMask mask;
 
     private List<GameObject> spawnedGameObjects = new List<GameObject>();
 
@@ -48,6 +90,7 @@ public class WindForceScript : MonoBehaviour
         {
             case Power.Wind: WindUpdate();  break;
             case Power.Crow: CrowUpdate(); break;
+            case Power.Telekinetic: UpdateTelekineticPower(); break;
             case Power.None: NoPowerUpdate(); break;
 
         }
@@ -83,7 +126,174 @@ public class WindForceScript : MonoBehaviour
         }
     }
 
-   
+    #region TelekineticPowers
+    //For kinetic powers
+    private void StartTelekineticPower()
+    {
+        xSpeed = UnityEngine.Random.Range(0.5f, 1.5f);
+        ySpeed = UnityEngine.Random.Range(0.5f, 1.5f);
+        zSpeed = UnityEngine.Random.Range(0.5f, 1.5f);
+        directionX = Vector3.right * xSpeed;
+        directionY = Vector3.up * ySpeed;
+        directionZ = Vector3.forward * zSpeed;
+        //centerPoint = affectedObjectDestination.localPosition;
+        //destination = transform.position;
+    }
+
+    //For kinetic powers
+    private void UpdateTelekineticPower()
+    {
+        if (hasObject)
+        {
+            //Idle Animation
+            IdleMovementAffectedObject();
+
+            //Shoot Function
+            if (grabItemWithTelikineticPowerAction.GetStateUp(handType))
+            {
+                ShootObjectAway();
+            }
+        }
+        else if (isGrabbingObject)
+        {
+            if (grabItemWithTelikineticPowerAction.GetStateUp(handType))
+            {
+                DropObject();
+            }
+            else
+            {
+                if (Vector3.Distance(affectedObjectDestination.position, affectedObject.transform.position) < onDestinationTreshhold)
+                {
+                    DoOnArrival();
+                }
+                else
+                {
+                    //Pull Item closer
+                    direction = (affectedObjectDestination.position - affectedObject.transform.position).normalized;
+                    rbAffectedObject.MovePosition(affectedObject.transform.position + direction * attractSpeed * Time.deltaTime);
+                }
+            }
+
+        }
+        else
+        {
+            //CanGrabItem
+            if (grabItemWithTelikineticPowerAction.GetStateDown(handType))
+            {
+                StartGrabbingObjectTelekinetic();
+            }
+        }
+    }
+
+    //For kinetic powers
+    private void DropObject()
+    {
+        Debug.Log("Drop");
+        isGrabbingObject = false;
+        rbAffectedObject.useGravity = true;
+        hasObject = false;
+        affectedObject.transform.SetParent(null);
+        affectedObject = null;
+        rbAffectedObject = null;
+        attractObjectParticles.SetActive(false);
+        hasObjectParticles.SetActive(false);
+        //affectedObject.transform.SetParent(null);
+    }
+
+    //For kinetic powers
+    private void StartGrabbingObjectTelekinetic()
+    {
+        Debug.Log("Grab");
+        RaycastHit hit;
+        if (Physics.Raycast(controllerPose.transform.position, transform.forward, out hit, 100, grabbableObjectMask))
+        {
+            affectedObject = hit.collider.gameObject;
+        }
+        isGrabbingObject = true;
+        rbAffectedObject = affectedObject.GetComponent<Rigidbody>();
+        rbAffectedObject.useGravity = false;
+        attractObjectParticles.SetActive(true);
+        rbAffectedObject.velocity = Vector3.zero;
+        rbAffectedObject.angularVelocity = Vector3.zero;
+        
+    }
+
+    //For kinetic powers
+    private void IdleMovementAffectedObject()
+    {
+        Debug.Log("Idle");
+        centerPoint = affectedObjectDestination.localPosition;
+        if (affectedObject.transform.localPosition.x >= centerPoint.x + maxRadius)
+        {
+            xSpeed = UnityEngine.Random.Range(0.5f, 1.5f);
+            directionX = -Vector3.right * xSpeed;
+        }
+        else if (affectedObject.transform.localPosition.x <= centerPoint.x - maxRadius)
+        {
+            xSpeed = UnityEngine.Random.Range(0.5f, 1.5f);
+            directionX = Vector3.right * xSpeed;
+        }
+
+
+        if (affectedObject.transform.localPosition.y >= centerPoint.y + maxRadius)
+        {
+            ySpeed = UnityEngine.Random.Range(0.5f, 1.5f);
+            directionY = -Vector3.up * ySpeed;
+
+        }
+        else if (affectedObject.transform.localPosition.y <= centerPoint.y - maxRadius)
+        {
+            ySpeed = UnityEngine.Random.Range(0.5f, 1.5f);
+            directionY = Vector3.up * ySpeed;
+
+        }
+
+        if (affectedObject.transform.localPosition.z >= centerPoint.z + maxRadius)
+        {
+            zSpeed = UnityEngine.Random.Range(0.5f, 1.5f);
+            directionZ = -Vector3.forward * zSpeed;
+        }
+        else if (affectedObject.transform.localPosition.z <= centerPoint.z - maxRadius)
+        {
+            zSpeed = UnityEngine.Random.Range(0.5f, 1.5f);
+            directionZ = Vector3.forward * zSpeed;
+        }
+
+        direction = (directionX + directionY + directionZ).normalized;
+
+        rbAffectedObject.MovePosition(affectedObject.transform.position + direction * moveSpeed * Time.deltaTime);
+    }
+
+    //For kinetic powers
+    private void DoOnArrival()
+    {
+        Debug.Log("Arrived");
+        isGrabbingObject = false;
+        hasObject = true;
+        affectedObject.transform.position = affectedObjectDestination.position;
+        //centerPoint = transform.localPosition;
+        attractObjectParticles.SetActive(false);
+        hasObjectParticles.SetActive(true);
+        affectedObject.transform.SetParent(affectedObjectDestination);
+    }
+
+    //For kinetic powers
+    private void ShootObjectAway()
+    {
+        Debug.Log("Shoot");
+        
+        rbAffectedObject.useGravity = true;
+        rbAffectedObject.AddForce(transform.forward * 1000);
+        affectedObject.transform.SetParent(null);
+        hasObject = false;
+        affectedObject = null;
+        rbAffectedObject = null;
+        attractObjectParticles.SetActive(false);
+        hasObjectParticles.SetActive(false);
+        fireObjectParticles.Play();
+        
+    }
+    #endregion
 
 
 
@@ -156,14 +366,7 @@ public class WindForceScript : MonoBehaviour
         }
     }
 
-    private void CastTelekinesis(Vector3 velocity)
-    {
-        Vector3 force = (velocity * forceVariable);
-
-
-
-
-    }
+    
 
 
 
