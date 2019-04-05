@@ -18,13 +18,14 @@ public class WindForceScript : MonoBehaviour
     public SteamVR_Behaviour_Pose controllerPose;
     public SteamVR_Action_Boolean selectAction;
     public SteamVR_Action_Boolean deselectAction;
+    public SteamVR_Action_Vibration vibration;
     #endregion
 
     #region MoveObjectinfo
     private Vector3 centerPoint;
-    private Vector3 directionX;
-    private Vector3 directionY;
-    private Vector3 directionZ;
+    public float directionX;
+    public float directionY;
+    public float directionZ;
     public float maxRadius = 0.2f;
     private float xSpeed = 1;
     private float ySpeed = 1;
@@ -131,12 +132,12 @@ public class WindForceScript : MonoBehaviour
     //For kinetic powers
     private void StartTelekineticPower()
     {
-        xSpeed = UnityEngine.Random.Range(0.5f, 1.5f);
-        ySpeed = UnityEngine.Random.Range(0.5f, 1.5f);
-        zSpeed = UnityEngine.Random.Range(0.5f, 1.5f);
-        directionX = Vector3.right * xSpeed;
-        directionY = Vector3.up * ySpeed;
-        directionZ = Vector3.forward * zSpeed;
+        xSpeed = 1;// UnityEngine.Random.Range(0.5f, 1.5f);
+        ySpeed = 1;//UnityEngine.Random.Range(0.5f, 1.5f);
+        zSpeed = 1;//UnityEngine.Random.Range(0.5f, 1.5f);
+        directionX = xSpeed;
+        directionY = ySpeed;
+        directionZ = zSpeed;
         //centerPoint = affectedObjectDestination.localPosition;
         //destination = transform.position;
     }
@@ -148,6 +149,8 @@ public class WindForceScript : MonoBehaviour
         {
             //Idle Animation
             IdleMovementAffectedObject();
+            //vibration.Execute(0,Time.deltaTime*3,1.0f/Time.deltaTime,1,handType);
+
 
             //Shoot Function
             if (grabItemWithTelikineticPowerAction.GetStateUp(handType))
@@ -228,60 +231,74 @@ public class WindForceScript : MonoBehaviour
     //For kinetic powers -> Gaat Foutish?
     private void IdleMovementAffectedObject()
     {
-        Debug.Log("Idle: "+centerPoint + " Loc: "+ affectedObject.transform.localPosition);
-        centerPoint = affectedObjectDestination.localPosition;
-        if (affectedObject.transform.localPosition.x >= centerPoint.x + maxRadius)
+        //Debug.Log("Idle: "+ centerPoint + " Loc: "+ affectedObject.transform.localPosition);
+        //rbAffectedObject.velocity = Vector3.zero;
+        //rbAffectedObject.angularVelocity = Vector3.zero;
+
+        centerPoint = affectedObjectDestination.position;
+        
+        if (affectedObject.transform.position.x >= centerPoint.x + maxRadius)
         {
-            xSpeed = UnityEngine.Random.Range(0.5f, 1.5f);
-            directionX = -Vector3.right * xSpeed;
+            Debug.Log("xBoundry");
+            //xSpeed = UnityEngine.Random.Range(0.5f, 1.5f);
+            directionX = -xSpeed;
         }
-        else if (affectedObject.transform.localPosition.x <= centerPoint.x - maxRadius)
+        else if (affectedObject.transform.position.x <= centerPoint.x - maxRadius) // centerpoint.x = 0 & maxRadius = 0.5f dus x <= -0.5f;
         {
-            xSpeed = UnityEngine.Random.Range(0.5f, 1.5f);
-            directionX = Vector3.right * xSpeed;
-        }
-
-
-        if (affectedObject.transform.localPosition.y >= centerPoint.y + maxRadius)
-        {
-            ySpeed = UnityEngine.Random.Range(0.5f, 1.5f);
-            directionY = -Vector3.up * ySpeed;
-
-        }
-        else if (affectedObject.transform.localPosition.y <= centerPoint.y - maxRadius)
-        {
-            ySpeed = UnityEngine.Random.Range(0.5f, 1.5f);
-            directionY = Vector3.up * ySpeed;
-
+            Debug.Log("-xBoundry");
+            //xSpeed = UnityEngine.Random.Range(0.5f, 1.5f); //1
+            directionX = xSpeed;
         }
 
-        if (affectedObject.transform.localPosition.z >= centerPoint.z + maxRadius)
+        if (affectedObject.transform.position.y >= centerPoint.y + maxRadius)
         {
-            zSpeed = UnityEngine.Random.Range(0.5f, 1.5f);
-            directionZ = -Vector3.forward * zSpeed;
+            Debug.Log("yBoundry");
+            //ySpeed = UnityEngine.Random.Range(0.5f, 1.5f);
+            directionY = -ySpeed;
+
         }
-        else if (affectedObject.transform.localPosition.z <= centerPoint.z - maxRadius)
+        else if (affectedObject.transform.position.y <= centerPoint.y - maxRadius)
         {
-            zSpeed = UnityEngine.Random.Range(0.5f, 1.5f);
-            directionZ = Vector3.forward * zSpeed;
+            Debug.Log("-yBoundry");
+            //ySpeed = UnityEngine.Random.Range(0.5f, 1.5f);
+            directionY = ySpeed;
+
         }
 
-        direction = (directionX + directionY + directionZ).normalized;
+        if (affectedObject.transform.position.z >= centerPoint.z + maxRadius)
+        {
+            Debug.Log("zBoundry");
+            //zSpeed = UnityEngine.Random.Range(0.5f, 1.5f);
+            directionZ = -zSpeed;
+        }
+        else if (affectedObject.transform.position.z <= centerPoint.z - maxRadius)
+        {
+            Debug.Log("-zBoundry");
+            //zSpeed = UnityEngine.Random.Range(0.5f, 1.5f);
+            directionZ = zSpeed;
+        }
 
-        rbAffectedObject.MovePosition(affectedObject.transform.position + direction * moveSpeed * Time.deltaTime);
+        direction = new Vector3(directionX, directionY, directionZ);
+        
+        rbAffectedObject.MovePosition(affectedObject.transform.position + (direction * moveSpeed * Time.deltaTime));
+        Debug.Log("Loc: " + affectedObject.transform.position + "CenterPoint: "+centerPoint+" Direction: " + direction);
     }
 
     //For kinetic powers
     private void DoOnArrival()
     {
         Debug.Log("Arrived");
+
         isGrabbingObject = false;
         hasObject = true;
         affectedObject.transform.position = affectedObjectDestination.position;
-        //centerPoint = transform.localPosition;
+        centerPoint = affectedObject.transform.localPosition;
         attractObjectParticles.SetActive(false);
         hasObjectParticles.SetActive(true);
-        affectedObject.transform.SetParent(affectedObjectDestination);
+        //affectedObject.transform.SetParent(affectedObjectDestination);
+
+        rbAffectedObject.velocity = Vector3.zero;
+        rbAffectedObject.angularVelocity = Vector3.zero;
     }
 
     //For kinetic powers
