@@ -30,6 +30,7 @@ public class WindForceScript : MonoBehaviour
     private float ySpeed = 1;
     private float zSpeed = 1;
     public float moveSpeed = 0.5f;
+    public ObjectAffectorScript objectAffector;
     #endregion
 
     #region PowerInfo
@@ -302,7 +303,7 @@ public class WindForceScript : MonoBehaviour
     #endregion
 
 
-
+    #region WindPowers
     private void WindUpdate()
     {
         Vector3 velocity = controllerPose.GetVelocity();
@@ -329,13 +330,12 @@ public class WindForceScript : MonoBehaviour
 
     private void DeselectObjects()
     {
-        AffectableObjectsManager.selectedObjects.Clear();
+        objectAffector.selectedObjects.Clear();
     }
 
     private void SelectObjects()
     {
-        //Might wanna split this up.
-        AffectableObjectsManager.selectedObjects = AffectableObjectsManager.affectedObjects.ToList();
+        objectAffector.selectedObjects = objectAffector.affectedObjects.ToList();
     }
 
     private bool CheckForceLimit(Vector3 force, float limit, bool lower)
@@ -348,16 +348,17 @@ public class WindForceScript : MonoBehaviour
 
     private void CastWind(Vector3 velocity)
     {
-        if (AffectableObjectsManager.selectedObjects.Any())
+        if (objectAffector.selectedObjects.Any())
         {
             Vector3 force = velocity * forceVariable;
 
-            foreach (GameObject moveableObject in AffectableObjectsManager.selectedObjects)
+            foreach (GameObject moveableObject in objectAffector.selectedObjects)
             {
                 moveableObject.GetComponent<Rigidbody>().AddForce(force);
             }
         }
     }
+    #endregion
 
     private void CastCrows(Vector3 velocity)
     {
