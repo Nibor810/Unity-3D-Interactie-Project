@@ -206,7 +206,6 @@ public class WindForceScript : MonoBehaviour
                 {
                     laser.SetActive(false);
                 }
-                
             }
             else
             {

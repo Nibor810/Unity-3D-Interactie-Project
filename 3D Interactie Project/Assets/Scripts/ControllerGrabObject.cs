@@ -18,16 +18,20 @@ public class ControllerGrabObject : MonoBehaviour
     {
         if (grabAction.GetLastStateDown(handType))
         {
+            Debug.Log("GrabObjectA");
             if (collidingObject)
             {
+                Debug.Log("GrabObjectB");
                 GrabObject();
             }
         }
 
         if (grabAction.GetLastStateUp(handType))
         {
+            Debug.Log("ReleaseObjectA");
             if (objectInHand)
             {
+                Debug.Log("ReleaseObjectB");
                 ReleaseObject();
             }
         }
@@ -36,10 +40,12 @@ public class ControllerGrabObject : MonoBehaviour
 
     private void SetCollidingObject(Collider col)
     {
+        Debug.Log("SetCollidingA");
         if (collidingObject || !col.GetComponent<Rigidbody>())
         {
             return;
         }
+        Debug.Log("SetCollidingB");
         collidingObject = col.gameObject;
     }
 
@@ -55,10 +61,12 @@ public class ControllerGrabObject : MonoBehaviour
 
     public void OnTriggerExit(Collider other)
     {
+        Debug.Log("DeleteCollidingA");
         if (!collidingObject)
         {
             return;
         }
+        Debug.Log("DeleteCollidingB");
         collidingObject = null;
     }
 
