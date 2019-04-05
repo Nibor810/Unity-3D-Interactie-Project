@@ -72,7 +72,12 @@ public class WindForceScript : MonoBehaviour
     private bool isGrabbingObject = false;
     #endregion
 
-
+    #region LaserStuff
+    public GameObject laserPrefab;
+    private GameObject laser;
+    private Transform laserTransform;
+    private Vector3 hitPoint;
+    #endregion
 
 
     //public GameObject targetPointer;
@@ -85,6 +90,9 @@ public class WindForceScript : MonoBehaviour
     private void Start()
     {
         selectedPower = startPower;
+
+        laser = Instantiate(laserPrefab);
+        laserTransform = laser.transform;
     }
 
     // Update is called once per frame
@@ -109,6 +117,7 @@ public class WindForceScript : MonoBehaviour
     {
         selectedPower = power;
         hasAccelerated = false;
+        laser.SetActive(false);
     }
 
     //Needs Work
@@ -183,12 +192,30 @@ public class WindForceScript : MonoBehaviour
         }
         else
         {
+            //Display Laser
+            RaycastHit hit;
+            if (Physics.Raycast(controllerPose.transform.position, transform.forward, out hit, 100))
+            {
+                hitPoint = hit.point;
+                ShowLaser(hit);
+            }
+
             //CanGrabItem
             if (grabItemWithTelikineticPowerAction.GetStateDown(handType))
             {
                 StartGrabbingObjectTelekinetic();
+                laser.SetActive(false);
             }
         }
+    }
+
+    //For kinetic powers
+    private void ShowLaser(RaycastHit hit)
+    {
+        laser.SetActive(true);
+        laserTransform.position = Vector3.Lerp(controllerPose.transform.position, hitPoint, .5f);
+        laserTransform.LookAt(hitPoint);
+        laserTransform.localScale = new Vector3(laserTransform.localScale.x, laserTransform.localScale.y, hit.distance);
     }
 
     //For kinetic powers
