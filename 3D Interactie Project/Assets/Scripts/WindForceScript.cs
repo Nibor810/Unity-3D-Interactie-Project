@@ -93,6 +93,7 @@ public class WindForceScript : MonoBehaviour
 
         laser = Instantiate(laserPrefab);
         laserTransform = laser.transform;
+        laser.SetActive(false);
     }
 
     // Update is called once per frame
@@ -196,8 +197,20 @@ public class WindForceScript : MonoBehaviour
             RaycastHit hit;
             if (Physics.Raycast(controllerPose.transform.position, transform.forward, out hit, 100))
             {
-                hitPoint = hit.point;
-                ShowLaser(hit);
+                if (hit.collider.CompareTag("Grabable"))
+                {
+                    hitPoint = hit.point;
+                    ShowLaser(hit);
+                }
+                else
+                {
+                    laser.SetActive(false);
+                }
+                
+            }
+            else
+            {
+                laser.SetActive(false);
             }
 
             //CanGrabItem
