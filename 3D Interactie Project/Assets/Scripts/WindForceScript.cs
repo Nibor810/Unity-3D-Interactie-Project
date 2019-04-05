@@ -23,14 +23,14 @@ public class WindForceScript : MonoBehaviour
 
     #region MoveObjectinfo
     private Vector3 centerPoint;
-    public float directionX;
-    public float directionY;
-    public float directionZ;
-    public float maxRadius = 0.2f;
+    private float directionX;
+    private float directionY;
+    private float directionZ;
+    //public float maxRadius = 0.2f;
     private float xSpeed = 1;
     private float ySpeed = 1;
     private float zSpeed = 1;
-    public float moveSpeed = 0.5f;
+    //public float moveSpeed = 0.5f;
     public ObjectAffectorScript objectAffector;
     #endregion
 
@@ -58,6 +58,8 @@ public class WindForceScript : MonoBehaviour
     private Vector3 direction;
     //private Vector3 destination;
     public float attractSpeed = 2.0f;
+    public float idleSpeed = 0.2f;
+    public float idleRadius = 0.1f;
     public float onDestinationTreshhold = 0.01f;
 
     public GameObject hasObjectParticles;
@@ -196,12 +198,11 @@ public class WindForceScript : MonoBehaviour
         isGrabbingObject = false;
         rbAffectedObject.useGravity = true;
         hasObject = false;
-        affectedObject.transform.SetParent(null);
+        //affectedObject.transform.SetParent(null);
         affectedObject = null;
         rbAffectedObject = null;
         attractObjectParticles.SetActive(false);
         hasObjectParticles.SetActive(false);
-        //affectedObject.transform.SetParent(null);
     }
 
     //For kinetic powers
@@ -237,50 +238,59 @@ public class WindForceScript : MonoBehaviour
 
         centerPoint = affectedObjectDestination.position;
         
-        if (affectedObject.transform.position.x >= centerPoint.x + maxRadius)
+        if (affectedObject.transform.position.x >= centerPoint.x + idleRadius)
         {
             Debug.Log("xBoundry");
-            //xSpeed = UnityEngine.Random.Range(0.5f, 1.5f);
+            xSpeed = UnityEngine.Random.Range(0.5f, 1.5f);
             directionX = -xSpeed;
         }
-        else if (affectedObject.transform.position.x <= centerPoint.x - maxRadius) // centerpoint.x = 0 & maxRadius = 0.5f dus x <= -0.5f;
+        else if (affectedObject.transform.position.x <= centerPoint.x - idleRadius) // centerpoint.x = 0 & maxRadius = 0.5f dus x <= -0.5f;
         {
             Debug.Log("-xBoundry");
-            //xSpeed = UnityEngine.Random.Range(0.5f, 1.5f); //1
+            xSpeed = UnityEngine.Random.Range(0.5f, 1.5f); //1
             directionX = xSpeed;
         }
 
-        if (affectedObject.transform.position.y >= centerPoint.y + maxRadius)
+        if (affectedObject.transform.position.y >= centerPoint.y + idleRadius)
         {
             Debug.Log("yBoundry");
-            //ySpeed = UnityEngine.Random.Range(0.5f, 1.5f);
+            ySpeed = UnityEngine.Random.Range(0.5f, 1.5f);
             directionY = -ySpeed;
 
         }
-        else if (affectedObject.transform.position.y <= centerPoint.y - maxRadius)
+        else if (affectedObject.transform.position.y <= centerPoint.y - idleRadius)
         {
             Debug.Log("-yBoundry");
-            //ySpeed = UnityEngine.Random.Range(0.5f, 1.5f);
+            ySpeed = UnityEngine.Random.Range(0.5f, 1.5f);
             directionY = ySpeed;
 
         }
 
-        if (affectedObject.transform.position.z >= centerPoint.z + maxRadius)
+        if (affectedObject.transform.position.z >= centerPoint.z + idleRadius)
         {
             Debug.Log("zBoundry");
-            //zSpeed = UnityEngine.Random.Range(0.5f, 1.5f);
+            zSpeed = UnityEngine.Random.Range(0.5f, 1.5f);
             directionZ = -zSpeed;
         }
-        else if (affectedObject.transform.position.z <= centerPoint.z - maxRadius)
+        else if (affectedObject.transform.position.z <= centerPoint.z - idleRadius)
         {
             Debug.Log("-zBoundry");
-            //zSpeed = UnityEngine.Random.Range(0.5f, 1.5f);
+            zSpeed = UnityEngine.Random.Range(0.5f, 1.5f);
             directionZ = zSpeed;
         }
 
         direction = new Vector3(directionX, directionY, directionZ);
-        
-        rbAffectedObject.MovePosition(affectedObject.transform.position + (direction * moveSpeed * Time.deltaTime));
+        float distanceSpeedModifier = 1f;
+        if(Vector3.Distance(affectedObject.transform.position, centerPoint) > 0.3f)
+        {
+            //Go Faster.
+            distanceSpeedModifier = 10;
+        }
+
+        rbAffectedObject.MovePosition(affectedObject.transform.position + (direction * idleSpeed * Time.deltaTime * distanceSpeedModifier));
+
+        //affectedObject.transform.position = affectedObject.transform.position + (direction * idleSpeed * Time.deltaTime);
+
         Debug.Log("Loc: " + affectedObject.transform.position + "CenterPoint: "+centerPoint+" Direction: " + direction);
     }
 
@@ -295,7 +305,7 @@ public class WindForceScript : MonoBehaviour
         centerPoint = affectedObject.transform.localPosition;
         attractObjectParticles.SetActive(false);
         hasObjectParticles.SetActive(true);
-        //affectedObject.transform.SetParent(affectedObjectDestination);
+        //affectedObject.transform.SetParent(transform);
 
         rbAffectedObject.velocity = Vector3.zero;
         rbAffectedObject.angularVelocity = Vector3.zero;
@@ -308,7 +318,7 @@ public class WindForceScript : MonoBehaviour
         
         rbAffectedObject.useGravity = true;
         rbAffectedObject.AddForce(transform.forward * 1000);
-        affectedObject.transform.SetParent(null);
+        //affectedObject.transform.SetParent(null);
         hasObject = false;
         affectedObject = null;
         rbAffectedObject = null;
