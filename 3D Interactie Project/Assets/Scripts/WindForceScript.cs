@@ -10,7 +10,6 @@ public enum Power
     None, Wind, Crow, Telekinetic
 }
 
-
 public class WindForceScript : MonoBehaviour
 {
     #region ControllerInfo
@@ -26,11 +25,9 @@ public class WindForceScript : MonoBehaviour
     private float directionX;
     private float directionY;
     private float directionZ;
-    //public float maxRadius = 0.2f;
     private float xSpeed = 1;
     private float ySpeed = 1;
     private float zSpeed = 1;
-    //public float moveSpeed = 0.5f;
     public ObjectAffectorScript objectAffector;
     #endregion
 
@@ -39,8 +36,9 @@ public class WindForceScript : MonoBehaviour
     public Power selectedPower;
     #endregion
 
-    public float forceLimit = 3.0f;
+    #region WindPowers
     public float forceVariable = 20.0f;
+    #endregion
 
     #region CrowPowers
     public int crowLifeTime = 5;
@@ -53,10 +51,9 @@ public class WindForceScript : MonoBehaviour
     #region TelekineticPowers
     public SteamVR_Action_Boolean grabItemWithTelikineticPowerAction;
     public Transform affectedObjectDestination;
-    public GameObject affectedObject;
+    private GameObject affectedObject;
     private Rigidbody rbAffectedObject;
     private Vector3 direction;
-    //private Vector3 destination;
     public float attractSpeed = 2.0f;
     public float idleSpeed = 0.2f;
     public float idleRadius = 0.1f;
@@ -78,12 +75,6 @@ public class WindForceScript : MonoBehaviour
     private Transform laserTransform;
     private Vector3 hitPoint;
     #endregion
-
-
-    //public GameObject targetPointer;
-    //public LayerMask mask;
-
-    private List<GameObject> spawnedGameObjects = new List<GameObject>();
 
     public bool hasAccelerated = false;
 
@@ -109,11 +100,6 @@ public class WindForceScript : MonoBehaviour
         }
     }
 
-    private void NoPowerUpdate()
-    {
-        
-    }
-
     public void SetPower(Power power)
     {
         selectedPower = power;
@@ -121,23 +107,9 @@ public class WindForceScript : MonoBehaviour
         laser.SetActive(false);
     }
 
-    //Needs Work
-    private void CrowUpdate()
+    private void NoPowerUpdate()
     {
-        Vector3 velocity = controllerPose.GetVelocity();
-        if (selectAction.GetState(handType))
-        {
-            if (velocity.magnitude > 3 && !hasAccelerated)
-            {
-                hasAccelerated = true;
-            }
-            else if (velocity.magnitude < 1 && hasAccelerated)
-            {
-                Debug.Log("Crow");
-                CastCrows(velocity);
-                hasAccelerated = false;
-            }
-        }
+        
     }
 
     #region TelekineticPowers
@@ -215,6 +187,7 @@ public class WindForceScript : MonoBehaviour
             //CanGrabItem
             if (grabItemWithTelikineticPowerAction.GetStateDown(handType))
             {
+                Debug.Log("KineticGrab");
                 StartGrabbingObjectTelekinetic();
                 laser.SetActive(false);
             }
@@ -426,10 +399,41 @@ public class WindForceScript : MonoBehaviour
     }
     #endregion
 
+    #region CrowPowers
+    //Needs Work
+    private void CrowUpdate()
+    {
+        Vector3 velocity = controllerPose.GetVelocity();
+        if (selectAction.GetState(handType))
+        {
+            if (velocity.magnitude > 3 && !hasAccelerated)
+            {
+                hasAccelerated = true;
+            }
+            else if (velocity.magnitude < 1 && hasAccelerated)
+            {
+                Debug.Log("Crow");
+                CastCrows(velocity);
+                hasAccelerated = false;
+            }
+        }
+    }
+
     private void CastCrows(Vector3 velocity)
     {
         Vector3 force = (velocity * forceVariable * 10) + (crowSpawnPosition.transform.forward * forceVariable * 10); //+ (controllerPose.transform.forward * forceVariable);
 
+        GameObject crow = Instantiate(crowPrefab, controllerPose.transform); //Position is fucked up, prefab met startpositie.
+        Debug.Log("locPos Papa: " + crow.transform.localPosition);
+        //crow.transform.localPosition = new Vector3(controllerPose.transform.localPosition.x, controllerPose.transform.localPosition.y, controllerPose.transform.localPosition.z);
+        crow.transform.localPosition = crowSpawnPosition.transform.localPosition;
+        Debug.Log("locPos Papa Change: " + crow.transform.localPosition);
+        crow.transform.SetParent(null);
+        Debug.Log("locPos No Papa: " + crow.transform.localPosition);
+        crow.GetComponent<Rigidbody>().AddForce(force);
+        Destroy(crow, (1 + UnityEngine.Random.value * 3));
+
+        /*
         for (int i = -1; i < 1; i++)//on x axis for left/right, y for up/down
         {
             GameObject crow = Instantiate(crowPrefab, controllerPose.transform); //Position is fucked up, prefab met startpositie.
@@ -438,9 +442,11 @@ public class WindForceScript : MonoBehaviour
             crow.GetComponent<Rigidbody>().AddForce(force);
             Destroy(crow, (1 + UnityEngine.Random.value * 3));
         }
+        */
     }
+    #endregion
 
-    
+
 
 
 

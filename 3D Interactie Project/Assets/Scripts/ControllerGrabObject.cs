@@ -35,7 +35,6 @@ public class ControllerGrabObject : MonoBehaviour
                 ReleaseObject();
             }
         }
-
     }
 
     private void SetCollidingObject(Collider col)

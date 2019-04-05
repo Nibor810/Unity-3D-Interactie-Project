@@ -12,9 +12,9 @@ public class PowerSelectorScript : MonoBehaviour
 
     public WindForceScript magicScript;
 
-    public GameObject particleA;
-    public GameObject particleB;
-    public GameObject particleC;
+    public GameObject crowParticles;
+    public GameObject windParticles;
+    public GameObject kineticParticles;
 
     // Update is called once per frame
     void Update()
@@ -26,33 +26,33 @@ public class PowerSelectorScript : MonoBehaviour
             {
                 Debug.Log("1");//Links Onder
                 magicScript.SetPower(Power.Crow);
-                particleA.SetActive(true);
-                particleB.SetActive(false);
-                particleC.SetActive(false);
+                crowParticles.SetActive(true);
+                windParticles.SetActive(false);
+                kineticParticles.SetActive(false);
             }
             else if (touchPadPosition.axis.x > 0 && touchPadPosition.axis.y < 0)
             {
                 Debug.Log("2");//Rechts Onder
                 magicScript.SetPower(Power.Wind);
-                particleA.SetActive(false);
-                particleB.SetActive(true);
-                particleC.SetActive(false);
+                crowParticles.SetActive(false);
+                windParticles.SetActive(true);
+                kineticParticles.SetActive(false);
             }
             else if (touchPadPosition.axis.x > 0 && touchPadPosition.axis.y > 0)
             {
                 Debug.Log("3");//Rechts Boven
                 magicScript.SetPower(Power.Telekinetic);
-                particleA.SetActive(false);
-                particleB.SetActive(false);
-                particleC.SetActive(true);
+                crowParticles.SetActive(false);
+                windParticles.SetActive(false);
+                kineticParticles.SetActive(true);
             }
             else if (touchPadPosition.axis.x < 0 && touchPadPosition.axis.y > 0)
             {
                 Debug.Log("4"); //Links Boven
                 magicScript.SetPower(Power.None);
-                particleA.SetActive(false);
-                particleB.SetActive(false);
-                particleC.SetActive(false);
+                crowParticles.SetActive(false);
+                windParticles.SetActive(false);
+                kineticParticles.SetActive(false);
             }
             else
             {
