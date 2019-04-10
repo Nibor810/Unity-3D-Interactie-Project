@@ -43,10 +43,18 @@ public class LaserPointerTeleport : MonoBehaviour
             if (Physics.Raycast(controllerPose.transform.position, transform.forward, out hit, 100, teleportMask))
             {
                 hitPoint = hit.point;
-                ShowLaser(hit);
-                reticle.SetActive(true);
-                teleportReticleTransform.position = hitPoint + teleportReticleOffset;
-                shouldTeleport = true;
+                if (hitPoint.y < 1.0f)
+                {
+                    ShowLaser(hit);
+                    reticle.SetActive(true);
+                    teleportReticleTransform.position = hitPoint + teleportReticleOffset;
+                    shouldTeleport = true;
+                }
+                else
+                {
+                    laser.SetActive(false);
+                    reticle.SetActive(false);
+                }
             }
         }
         else
